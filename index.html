@@ -1,0 +1,440 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Révisions — Chapitre 3 (Société française)</title>
+<style>
+  :root{
+    --bg:#f5f7fb; --card:#ffffff; --accent:#4b7bec; --muted:#6b7280;
+    --success:#2ecc71; --danger:#ff6b6b;
+  }
+  body{margin:0;font-family:Inter, "Segoe UI", Roboto, Arial;background:var(--bg);color:#111}
+  .wrap{max-width:980px;margin:28px auto;padding:22px}
+  header{display:flex;gap:18px;align-items:center}
+  header h1{margin:0;font-size:1.6rem}
+  .meta{color:var(--muted);font-size:0.9rem}
+  .card{background:var(--card);border-radius:12px;padding:18px;margin-top:18px;box-shadow:0 6px 20px rgba(16,24,40,0.06)}
+  .controls{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn{background:var(--accent);color:white;padding:10px 12px;border-radius:10px;border:none;cursor:pointer}
+  .btn.secondary{background:#eef3ff;color:var(--accent);border:1px solid rgba(75,123,236,0.15)}
+  #board{display:grid;grid-template-columns:1fr 340px;gap:16px;margin-top:18px}
+  .quizArea{padding:8px}
+  .qcard{border-radius:10px;padding:14px;margin-bottom:12px;background:linear-gradient(180deg,#fff,#fbfdff);box-shadow:0 2px 8px rgba(12,18,42,0.04)}
+  .question{font-weight:600;margin-bottom:8px}
+  .choices{display:flex;flex-direction:column;gap:8px}
+  .choice{padding:10px;border-radius:8px;border:1px solid #e6eefc;background:#fff;cursor:pointer}
+  .choice:hover{transform:translateY(-2px);box-shadow:0 8px 18px rgba(75,123,236,0.06)}
+  .choice.correct{border-color:var(--success);background:#ecfdf3}
+  .choice.wrong{border-color:var(--danger);background:#fff5f5}
+  .small{font-size:0.9rem;color:var(--muted)}
+  .scorebox{padding:12px;border-radius:10px}
+  .progressWrap{height:14px;background:#e9eef8;border-radius:8px;overflow:hidden}
+  .progressBar{height:14px;background:var(--accent);width:0%}
+  .badgeList{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .badge{padding:6px 8px;border-radius:999px;background:#f1f6ff;color:var(--accent);font-weight:600}
+  .explain{margin-top:10px;padding:10px;border-radius:8px;background:#fbfbff;border:1px solid #eef2ff;color:#0f172a}
+  .fillInput{width:100%;padding:10px;border-radius:8px;border:1px solid #e6e9f2}
+  footer{margin-top:18px;color:var(--muted);font-size:0.9rem;text-align:center}
+  /* responsive */
+  @media (max-width:950px){#board{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='48' height='48'><rect rx='9' ry='9' width='48' height='48' fill='%234b7bec'/><text x='50%' y='58%' font-size='20' font-family='Arial' fill='white' text-anchor='middle'>R</text></svg>" alt="" style="height:48px;width:48px;border-radius:8px"/>
+    <div>
+      <h1>Révisions — Chapitre 3 : structuration de la société française</h1>
+      <div class="meta">QCM • Questions à trous • Badges & progression • Basé sur ton PDF.  [oai_citation:1‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)</div>
+    </div>
+  </header>
+
+  <div class="card controls">
+    <div style="flex:1">
+      <strong>Mode :</strong>
+      <select id="modeSelect" class="small" style="padding:8px;border-radius:8px;border:1px solid #e6eefc;margin-left:8px">
+        <option value="mixed">Mixte (QCM + trous)</option>
+        <option value="mcq">QCM seulement</option>
+        <option value="fill">Trous seulement</option>
+        <option value="review">Réviser erreurs</option>
+      </select>
+    </div>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn" id="startBtn">Commencer</button>
+      <button class="btn secondary" id="resetBtn">Réinitialiser progression</button>
+    </div>
+  </div>
+
+  <div id="board">
+    <div class="quizArea">
+      <!-- questions injected here -->
+      <div id="questionContainer"></div>
+      <div id="resultCard" class="card" style="display:none">
+        <h3>Session terminée 🎉</h3>
+        <p id="sessionSummary"></p>
+        <div id="sessionBadges" class="badgeList"></div>
+      </div>
+    </div>
+
+    <aside class="card" style="height:fit-content">
+      <div class="scorebox">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div>
+            <div class="small">Score</div>
+            <div style="font-size:1.6rem" id="score">0</div>
+          </div>
+          <div style="text-align:right">
+            <div class="small">Niveau</div>
+            <div id="level" style="font-weight:700">Débutant</div>
+          </div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="small">Progression session</div>
+          <div class="progressWrap" style="margin-top:8px"><div class="progressBar" id="progressBar"></div></div>
+        </div>
+        <div style="margin-top:12px">
+          <div class="small">Badges</div>
+          <div id="badges" class="badgeList"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:14px" class="small">
+        <strong>Conseil :</strong> lis la courte explication après chaque réponse pour ancrer la notion.
+      </div>
+    </aside>
+  </div>
+
+  <footer class="small">Application créée à partir du PDF du chapitre 3 (facteurs, transformations socioprofessionnelles, théories des classes, débats contemporains).  [oai_citation:2‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)</footer>
+</div>
+
+<script>
+/* ---------------------------
+   QUESTION BANK (extraits du PDF)
+   Chaque question a:
+     id, type: 'mcq'|'fill', question, choices (for mcq), answer, explain
+   Les explications référencent le PDF (source incluse dans l'app header/footer).
+   --------------------------- */
+
+const QUESTIONS = [
+  /* FACTEURS */
+  {id:1, type:'mcq',
+   question:"Quels sont les 3 facteurs socio-économiques cités comme structurant l'espace social ?",
+   choices:["Revenu, diplôme, catégorie socioprofessionnelle","Composition du ménage, sexe, lieu de résidence","Âge, diplôme, langue"],
+   answer:0,
+   explain:"Le PDF mentionne explicitement revenu, diplôme et catégorie socioprofessionnelle comme les 3 facteurs socio-économiques structurant l'espace social.  [oai_citation:3‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+  {id:2, type:'mcq',
+   question:"Parmi les facteurs socio-démographiques suivants lequel n'en fait pas partie selon le cours ?",
+   choices:["Composition du ménage","Position dans le cycle de vie","Opinion politique (parti)"],
+   answer:2,
+   explain:"Les 4 facteurs socio-démographiques donnés sont : composition du ménage, position dans le cycle de vie, sexe, lieu de résidence. Les opinions politiques ne sont pas listées ici.  [oai_citation:4‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+
+  /* STRUCTURE SOCIOPROFESSIONNELLE */
+  {id:3, type:'mcq',
+   question:"La 'salarisation' désigne :",
+   choices:["L'augmentation du nombre de salariés par rapport aux indépendants","La hausse des salaires moyens","Le passage du secteur tertiaire au secondaire"],
+   answer:0,
+   explain:"La salarisation = hausse de la part de salariés et diminution des indépendants (ex: recul des petits commerçants).  [oai_citation:5‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+  {id:4, type:'mcq',
+   question:"La tertiarisation provoque principalement :",
+   choices:["Une hausse du secteur des services et une baisse des secteurs primaire et secondaire","Une augmentation du nombre d'agriculteurs","Une baisse du niveau de qualification moyen"],
+   answer:0,
+   explain:"Tertiarisation = augmentation du tertiaire (services), baisse du primaire (agriculture) et secondaire (industrie).  [oai_citation:6‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+  {id:5, type:'fill',
+   question:"Complète : L'élévation du niveau de qualification s'explique en grande partie par la démocratisation de ___.",
+   answer:"l'école",
+   explain:"Le texte explique que l'élévation du niveau de qualification est liée à la démocratisation scolaire (allongement des études).  [oai_citation:7‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+
+  /* FEMINISATION */
+  {id:6, type:'mcq',
+   question:"La 'féminisation' des emplois est surtout liée à :",
+   choices:["La tertiarisation et l'ouverture de nouveaux emplois dans les services","La disparition du droit de vote pour les femmes","Une baisse du niveau d'éducation des femmes"],
+   answer:0,
+   explain:"Le PDF relie la féminisation du marché du travail à la tertiarisation (plus d'emplois dans les services).  [oai_citation:8‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+
+  /* THEORIES */
+  {id:7, type:'mcq',
+   question:"Selon Marx, qu'est-ce qui distingue principalement les classes sociales ?",
+   choices:["La possession des facteurs de production (économie)","Le prestige social et la culture","L'appartenance à un même parti politique"],
+   answer:0,
+   explain:"Marx se base sur la dimension économique — possession du capital vs travail pour définir les classes (classe en soi, pour soi, lutte des classes).  [oai_citation:9‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+  {id:8, type:'mcq',
+   question:"Weber propose une analyse multidimensionnelle. Parmi ces dimensions, laquelle ne figure pas chez Weber ?",
+   choices:["Économique","Politique","Génétique personnelle"],
+   answer:2,
+   explain:"Weber distingue les dimensions économique, sociale (prestige) et politique (pouvoir). 'Génétique personnelle' n'est pas une dimension de Weber.  [oai_citation:10‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+  {id:9, type:'fill',
+   question:"Complète : Bourdieu synthétise Marx et Weber en parlant de capitaux : économique, culturel et ___.",
+   answer:"social",
+   explain:"Bourdieu identifie trois capitaux : économique, culturel et social.  [oai_citation:11‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+
+  /* MOYENNISATION / INEGALITES */
+  {id:10, type:'mcq',
+   question:"La 'moyennisation' observée en France (années 60-70) correspond à :",
+   choices:["Une hausse du nombre d'individus se retrouvant dans la classe moyenne","Une disparition complète des pauvres","Une homogénéisation des opinions politiques"],
+   answer:0,
+   explain:"Moyennisation = augmentation de la classe moyenne (Henri Mendras), pas une disparition totale des pauvres.  [oai_citation:12‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+  {id:11, type:'mcq',
+   question:"Depuis 40 ans, la tendance concernant la répartition des richesses est plutôt :",
+   choices:["Concentration des gains chez les très hauts revenus","Distribution parfaitement égale","Baisse des inégalités scolaires"],
+   answer:0,
+   explain:"Le document indique que l'augmentation des richesses est surtout récupérée par les très hauts revenus (top 0,01%).  [oai_citation:13‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+  {id:12, type:'fill',
+   question:"Complète : La ségrégation scolaire se manifeste par une concentration des enfants de cadres dans les lycées ___.",
+   answer:"sélectifs",
+   explain:"Le PDF mentionne que les écoles/lycées les plus sélectifs comptent majoritairement des enfants de cadres, illustrant la ségrégation scolaire.  [oai_citation:14‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+
+  /* CLASSES SOCIALES CONTEMPORAINES */
+  {id:13, type:'mcq',
+   question:"La 'nouvelle classe populaire très précaire' se caractérise par :",
+   choices:["Contrats précaires (CDD, intérim), faible rémunération, faible patrimoine","Possession du patrimoine historique (châteaux)","Appartenance aux grandes écoles"],
+   answer:0,
+   explain:"Le texte décrit la nouvelle classe populaire comme précaire : contrats instables, faible salaire, chômage, faible patrimoine.  [oai_citation:15‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+  {id:14, type:'mcq',
+   question:"Qu'est-ce que 'entre-soi' chez la très haute bourgeoisie ?",
+   choices:["Fréquentation majoritairement des mêmes écoles/cercles, réseau fermé","Mélange social intense","Absence totale de patrimoine"],
+   answer:0,
+   explain:"Le document parle d'entre-soi : pratiques culturelles, grandes écoles, réseaux comme marqueurs d'une élite fermée.  [oai_citation:16‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+
+  /* RAPPORTS DE GENRE */
+  {id:15, type:'mcq',
+   question:"Les rapports sociaux de genre affectent principalement :",
+   choices:["La répartition des tâches domestiques et les inégalités salariales","La taille des logements","Le climat"],
+   answer:0,
+   explain:"Le chapitre insiste sur les rôles masculins/féminins — inégalités salariales, plafond de verre, tâches domestiques.  [oai_citation:17‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+  {id:16, type:'fill',
+   question:"Complète : L'affaiblissement de l'identification subjective à une classe sociale s'explique par le processus d'___.",
+   answer:"individualisation",
+   explain:"Le texte explique que l'individualisation (carrières personnalisées, moins de syndicalisation) réduit l'identification collective.  [oai_citation:18‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+
+  /* MIXTE RAPPEL */
+  {id:17, type:'mcq',
+   question:"Combien de facteurs structurants de l'espace social sont listés dans le cours ?",
+   choices:["7","3","10"],
+   answer:0,
+   explain:"Le plan du chapitre indique 7 facteurs (3 socio-économiques + 4 socio-démographiques).  [oai_citation:19‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  },
+  {id:18, type:'fill',
+   question:"Complète : Parmi les CSP cités figurent les ouvriers, employés, professions intermédiaires et ___.",
+   answer:"cadres",
+   explain:"Le PDF cite les principales catégories (ouvriers, employés, professions intermédiaires, cadres/CPIS, ACCE, agriculteurs).  [oai_citation:20‡DP Chapitre 3.pdf](sediment://file_00000000d58071f48d35c467c8095a74)"
+  }
+
+]; // end QUESTIONS
+
+/* ---------------------------
+   App logic (lightweight)
+   --------------------------- */
+
+let state = {
+  order: [], index:0, score:0, correct:0, total:0, badges:[], wrongIds:[], mode:'mixed'
+};
+
+function saveState(){
+  localStorage.setItem('rev_state_v1', JSON.stringify(state));
+}
+function loadState(){
+  const s = localStorage.getItem('rev_state_v1');
+  if(s){ state = JSON.parse(s); updateUI(); }
+}
+function resetState(){
+  if(confirm("Réinitialiser la progression locale ?")) {
+    localStorage.removeItem('rev_state_v1');
+    location.reload();
+  }
+}
+
+function pickQuestions(mode){
+  let pool = [...QUESTIONS];
+  if(mode==='mcq') pool = pool.filter(q=>q.type==='mcq');
+  if(mode==='fill') pool = pool.filter(q=>q.type==='fill');
+  if(mode==='review'){
+    pool = QUESTIONS.filter(q=> state.wrongIds && state.wrongIds.includes(q.id));
+    if(pool.length===0){ alert("Aucune erreur précédente à revoir — commence une session normale."); pool = [...QUESTIONS]; }
+  }
+  // shuffle & limit to 12 per session
+  for(let i=pool.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [pool[i],pool[j]]=[pool[j],pool[i]]; }
+  return pool.slice(0,12);
+}
+
+function startSession(){
+  state.mode = document.getElementById('modeSelect').value;
+  state.order = pickQuestions(state.mode).map(q=>q.id);
+  state.index=0; state.total=state.order.length;
+  state.sessionWrong = [];
+  saveState();
+  renderQuestion();
+  document.getElementById('resultCard').style.display='none';
+}
+
+function renderQuestion(){
+  const container = document.getElementById('questionContainer');
+  container.innerHTML='';
+  if(state.index >= state.total){
+    endSession();
+    return;
+  }
+  const qid = state.order[state.index];
+  const q = QUESTIONS.find(x=>x.id===qid);
+  const qcard = document.createElement('div'); qcard.className='qcard';
+  const qtxt = document.createElement('div'); qtxt.className='question'; qtxt.textContent = (state.index+1)+'. '+q.question;
+  qcard.appendChild(qtxt);
+
+  if(q.type==='mcq'){
+    const choices = document.createElement('div'); choices.className='choices';
+    q.choices.forEach((c,ii)=>{
+      const ch = document.createElement('div'); ch.className='choice'; ch.textContent = c;
+      ch.onclick = ()=> handleMCQ(q, ii, ch);
+      choices.appendChild(ch);
+    });
+    qcard.appendChild(choices);
+  } else if(q.type==='fill'){
+    const input = document.createElement('input'); input.className='fillInput'; input.placeholder='Ta réponse';
+    const valBtn = document.createElement('button'); valBtn.className='btn'; valBtn.style.marginTop='10px'; valBtn.textContent='Valider';
+    valBtn.onclick = ()=> handleFill(q, input.value.trim(), qcard);
+    qcard.appendChild(input); qcard.appendChild(valBtn);
+  }
+
+  container.appendChild(qcard);
+  updateProgress();
+}
+
+function handleMCQ(q, chosen, element){
+  // disable all choices
+  const parent = element.parentElement;
+  Array.from(parent.children).forEach(ch=>ch.style.pointerEvents='none');
+  const correctIndex = q.answer;
+  if(chosen === correctIndex){
+    element.classList.add('correct');
+    awardPoints(10);
+    showExplain(q, true, parent.parentElement);
+  } else {
+    element.classList.add('wrong');
+    // highlight correct
+    parent.children[correctIndex].classList.add('correct');
+    awardPoints(-3);
+    recordWrong(q.id);
+    showExplain(q, false, parent.parentElement);
+  }
+  // move to next after short delay
+  setTimeout(()=>{ state.index++; saveState(); renderQuestion(); }, 850);
+}
+
+function handleFill(q, resp, qcard){
+  resp = resp.toLowerCase();
+  const expected = q.answer.toLowerCase();
+  const isCorrect = expected.split('/').some(e=> e.trim() === resp || resp.includes(e.trim()) );
+  if(isCorrect){
+    awardPoints(12);
+    showExplain(q, true, qcard);
+  } else {
+    awardPoints(-4);
+    recordWrong(q.id);
+    showExplain(q, false, qcard);
+  }
+  // move on after delay
+  setTimeout(()=>{ state.index++; saveState(); renderQuestion(); }, 950);
+}
+
+function showExplain(q, correct, parentEl){
+  const ex = document.createElement('div'); ex.className='explain';
+  ex.innerHTML = (correct ? "✔ Bonne réponse. " : "✖ Réponse attendue : <strong>" + (Array.isArray(q.answer)?q.answer.join(' / '):q.answer) + "</strong>. ") + "<div style='margin-top:8px;font-size:0.95rem;color:#374151'>" + q.explain + "</div>";
+  parentEl.appendChild(ex);
+}
+
+function awardPoints(n){
+  state.score = (state.score || 0) + n; if(state.score < 0) state.score = 0;
+  if(n>0) state.correct = (state.correct||0) + 1;
+  updateLevel();
+  saveState();
+  updateUI();
+}
+
+function updateLevel(){
+  const s = state.score || 0;
+  let lv='Débutant';
+  if(s>=200) lv='Expert';
+  else if(s>=120) lv='Avancé';
+  else if(s>=60) lv='Intermédiaire';
+  document.getElementById('level').textContent = lv;
+}
+
+function recordWrong(id){
+  state.wrongIds = state.wrongIds || [];
+  if(!state.wrongIds.includes(id)) state.wrongIds.push(id);
+  state.sessionWrong = state.sessionWrong || [];
+  if(!state.sessionWrong.includes(id)) state.sessionWrong.push(id);
+  saveState();
+}
+
+function endSession(){
+  document.getElementById('questionContainer').innerHTML='';
+  document.getElementById('resultCard').style.display='block';
+  const sum = document.getElementById('sessionSummary');
+  const percent = Math.round(((state.correct||0)/(state.total||1))*100);
+  sum.innerHTML = `Questions : ${state.total} • Correctes cette session : ${state.correct||0} (${percent}%) • Score total : ${state.score}`;
+  // badges simple logic
+  const badges = [];
+  if(state.score >= 60) badges.push('Régulier');
+  if(state.score >= 120) badges.push('Assidu');
+  if(state.score >= 200) badges.push('Champion');
+  if((state.sessionWrong||[]).length===0) badges.push('Sans faute');
+  state.badges = Array.from(new Set([...(state.badges||[]), ...badges]));
+  saveState();
+  renderBadges();
+  // reset session counters
+  state.index=0; state.correct=0; state.order=[];
+  saveState();
+}
+
+function renderBadges(){
+  const bdiv = document.getElementById('badges');
+  bdiv.innerHTML='';
+  (state.badges||[]).forEach(b=>{
+    const el = document.createElement('div'); el.className='badge'; el.textContent=b;
+    bdiv.appendChild(el);
+  });
+  const sb = document.getElementById('sessionBadges'); sb.innerHTML='';
+  (state.badges||[]).forEach(b=>{ const el=document.createElement('div'); el.className='badge'; el.textContent=b; sb.appendChild(el); });
+}
+
+function updateProgress(){
+  const p = Math.round((state.index / (state.total || 1))*100);
+  document.getElementById('progressBar').style.width = p + '%';
+  document.getElementById('score').textContent = state.score || 0;
+  renderBadges();
+}
+
+function updateUI(){
+  document.getElementById('score').textContent = state.score || 0;
+  updateLevel();
+  updateProgress();
+}
+
+/* init */
+document.getElementById('startBtn').onclick = startSession;
+document.getElementById('resetBtn').onclick = resetState;
+document.getElementById('modeSelect').onchange = ()=>{ /* noop */ };
+
+loadState();
+updateUI();
+
+</script>
+</body>
+</html>
